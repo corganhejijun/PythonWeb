@@ -1,0 +1,85 @@
+<!DOCTYPE html> {% load bootstrap3 %} {% load staticfiles %}
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>串口读取</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'SerialRead/bootstrap.min.css' %}" />
+    <script type="text/javascript" src="{% static 'SerialRead/jquery-2.2.4.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'SerialRead/bootstrap.min.js' %}"></script>
+    <script type="text/javascript">
+        function getComData(){
+            var com = $("#serialList")[0].value;
+            var baud = $("#baudrate")[0].value;
+            var url = window.location + 'json/?p=' + com + '&b=' + baud;
+            $.getJSON(url, function(json){
+                if (json.success){
+                    var myDate = new Date();
+                    var mytime = myDate.toLocaleTimeString();
+                    $("#serialData")[0].textContent = myDate.toLocaleString() + ": " + json.data + '\n' + $("#serialData")[0].textContent;
+                }
+            });
+        }
+        function closeCom(){
+            var com = $("#serialList")[0].value;
+            var url = window.location + 'json/?p=' + com + '&c=';
+            $.getJSON(url, function(json){});
+            location.reload();
+        }
+        $(document).ready(function(){ 
+            var url = window.location + "json/?p=list"
+            $.getJSON(url, function(json){
+                if (!json.success){
+                    alert(json.msg);
+                }
+                list = json.data;
+                result = '';
+                for (var i = 0; i < list.length; i++){
+                    result += '<option>' + list[i] + '</option>';
+                }
+                $("#serialList")[0].innerHTML = result;
+                $("#getData")[0].disabled = '';
+            });
+            $("#getData").click(function(){
+                setInterval(getComData, 100);
+            });
+            $("#closeCom").click(function(){
+                closeCom();
+            });
+        });
+        window.onbeforeunload = function(){ 
+            closeCom();
+        };
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="well">
+            <div class="row">
+                <div class="col-md-2">
+                    <select class="form-control" id="serialList">
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="" class="btn btn-success" disabled="disabled" id="getData">接收数据</button>
+                </div>
+                <div class="col-md-2">
+                    <button type="" class="btn btn-danger" id="closeCom">关闭串口</button>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">波特率</div>
+                            <input type="text" class="form-control" id="baudrate" name="" value="9600">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p></p>
+            <textarea class="form-control" rows="11" id="serialData"></textarea>
+        </div>
+        </div>
+</body>
+
+</html>
